@@ -107,7 +107,7 @@ def download_video_thread(url, download_id, platform='youtube'):
         # yt-dlp command with optimal settings for Premiere Pro compatibility
         cmd = [
             'yt-dlp',
-            '--format', 'best[height<=1080]/best',  # Prefer 1080p or best available
+            '--format', 'best[height<=1080][ext=mp4]/best[height<=1080]/best[ext=mp4]/best',  # Prefer MP4 format
             '--merge-output-format', 'mp4',          # Ensure MP4 output
             '--output', f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
             '--progress', '--newline',
@@ -117,6 +117,7 @@ def download_video_thread(url, download_id, platform='youtube'):
             '--referer', 'https://www.youtube.com/',
             '--sleep-requests', '1',
             '--sleep-interval', '1',
+            '--postprocessor-args', 'ffmpeg:-c:v libx264 -c:a aac -movflags +faststart -preset fast',  # Ensure H.264/AAC codecs
             url
         ]
         
