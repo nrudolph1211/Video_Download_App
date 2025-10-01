@@ -104,11 +104,11 @@ def download_video_thread(url, download_id, platform='youtube'):
             'platform': platform
         }
         
-        # yt-dlp command with optimal settings for Premiere Pro compatibility
+        # yt-dlp command with optimal settings for maximum compatibility
         cmd = [
             'yt-dlp',
-            '--format', 'best[height<=1080][ext=mp4]/best[height<=1080]/best[ext=mp4]/best',  # Prefer MP4 format
-            '--merge-output-format', 'mp4',          # Ensure MP4 output
+            '--format', 'best[ext=mp4]/best[height<=720]/best',  # Prioritize MP4, then 720p max
+            '--merge-output-format', 'mp4',          # Force MP4 output
             '--output', f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
             '--progress', '--newline',
             '--no-playlist',  # Only download single video
@@ -117,7 +117,7 @@ def download_video_thread(url, download_id, platform='youtube'):
             '--referer', 'https://www.youtube.com/',
             '--sleep-requests', '1',
             '--sleep-interval', '1',
-            '--postprocessor-args', 'ffmpeg:-c:v libx264 -c:a aac -movflags +faststart -preset fast',  # Ensure H.264/AAC codecs
+            '--recode-video', 'mp4',  # Force recode to MP4 with H.264
             url
         ]
         
@@ -154,6 +154,35 @@ def download_video_thread(url, download_id, platform='youtube'):
         
         # Wait for process to complete
         return_code = process.wait()
+        
+        # If first attempt failed, try a simpler format
+        if return_code != 0:
+            active_downloads[download_id]['status'] = 'retrying'
+            active_downloads[download_id]['error'] = 'Retrying with simpler format...'
+            
+            # Try with simpler format
+            simple_cmd = [
+                'yt-dlp',
+                '--format', 'worst[ext=mp4]/worst',  # Use worst quality but ensure MP4
+                '--merge-output-format', 'mp4',
+                '--output', f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
+                '--progress', '--newline',
+                '--no-playlist',
+                '--ignore-errors',
+                '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                '--referer', 'https://www.youtube.com/',
+                url
+            ]
+            
+            process = subprocess.Popen(
+                simple_cmd,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                universal_newlines=True,
+                bufsize=1
+            )
+            
+            return_code = process.wait()
         
         if return_code == 0:
             # Find the downloaded file
