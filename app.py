@@ -19,6 +19,11 @@ os.makedirs(DOWNLOAD_DIR, exist_ok=True)
 # Store active downloads
 active_downloads = {}
 
+@app.route('/health')
+def health_check():
+    # Allow healthcheck requests from Railway
+    return jsonify({'status': 'healthy', 'service': 'video-downloader'}), 200
+
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -183,5 +188,6 @@ def list_downloads():
     return jsonify(downloads)
 
 if __name__ == '__main__':
+    # Railway injects PORT environment variable - use it for health checks
     port = int(os.environ.get('PORT', 8080))
     app.run(debug=False, host='0.0.0.0', port=port)
