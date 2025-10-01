@@ -23,6 +23,10 @@ active_downloads = {}
 def index():
     return render_template('index.html')
 
+@app.route('/health')
+def health_check():
+    return jsonify({'status': 'healthy'}), 200
+
 @app.route('/download', methods=['POST'])
 def download_video():
     data = request.get_json()
