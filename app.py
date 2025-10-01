@@ -112,7 +112,6 @@ def download_video_thread(url, download_id, platform='youtube'):
             '--output', f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
             '--progress', '--newline',
             '--no-playlist',  # Only download single video
-            '--extract-flat', 'false',  # Extract video info
             '--ignore-errors',  # Continue on download errors
             url
         ]
