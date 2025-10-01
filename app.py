@@ -113,6 +113,10 @@ def download_video_thread(url, download_id, platform='youtube'):
             '--progress', '--newline',
             '--no-playlist',  # Only download single video
             '--ignore-errors',  # Continue on download errors
+            '--user-agent', 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            '--referer', 'https://www.youtube.com/',
+            '--sleep-requests', '1',
+            '--sleep-interval', '1',
             url
         ]
         
@@ -169,8 +173,14 @@ def download_video_thread(url, download_id, platform='youtube'):
         else:
             # Capture error output for debugging
             error_output = '\n'.join(output_lines[-10:])  # Last 10 lines
-            active_downloads[download_id]['status'] = 'error'
-            active_downloads[download_id]['error'] = f'Download failed with return code {return_code}. Output: {error_output}'
+            
+            # Check if it's a YouTube bot detection error
+            if 'Sign in to confirm you\'re not a bot' in error_output or 'bot' in error_output.lower():
+                active_downloads[download_id]['status'] = 'error'
+                active_downloads[download_id]['error'] = 'YouTube is blocking automated downloads. Try again later or use a different video.'
+            else:
+                active_downloads[download_id]['status'] = 'error'
+                active_downloads[download_id]['error'] = f'Download failed with return code {return_code}. Output: {error_output}'
             
     except Exception as e:
         active_downloads[download_id]['status'] = 'error'
