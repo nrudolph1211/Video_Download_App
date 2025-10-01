@@ -26,7 +26,34 @@ def health_check():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    try:
+        return render_template('index.html')
+    except Exception as e:
+        # Fallback HTML if template is missing
+        return '''
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Video Downloader</title>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 40px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; }
+                .container { background: white; padding: 40px; border-radius: 20px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); text-align: center; max-width: 600px; }
+                h1 { color: #333; margin-bottom: 20px; }
+                .status { color: #666; margin-bottom: 20px; }
+                .download-btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 15px 30px; border-radius: 10px; font-size: 16px; cursor: pointer; margin: 10px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>🎥 Video Downloader</h1>
+                <p class="status">YouTube, Instagram, Facebook & TikTok</p>
+                <p>Template file is missing. Please upload templates/index.html to GitHub.</p>
+                <p><strong>Error:</strong> {}</p>
+                <button class="download-btn" onclick="alert('Upload templates/index.html to fix this!')">Fix Required</button>
+            </div>
+        </body>
+        </html>
+        '''.format(str(e)), 200
 
 @app.route('/download', methods=['POST'])
 def download_video():
