@@ -10,7 +10,7 @@ import json
 app = Flask(__name__)
 
 # Configuration
-DOWNLOAD_DIR = "/Users/nathanielrudolph/Desktop/YT DOWNLOAD APP/downloads"
+DOWNLOAD_DIR = "/tmp/downloads"  # Use /tmp for Railway compatibility
 MAX_CONCURRENT_DOWNLOADS = 3
 
 # Create downloads directory if it doesn't exist
@@ -111,6 +111,9 @@ def download_video_thread(url, download_id, platform='youtube'):
             '--merge-output-format', 'mp4',          # Ensure MP4 output
             '--output', f'{DOWNLOAD_DIR}/%(title)s.%(ext)s',
             '--progress', '--newline',
+            '--no-playlist',  # Only download single video
+            '--extract-flat', 'false',  # Extract video info
+            '--ignore-errors',  # Continue on download errors
             url
         ]
         
@@ -165,8 +168,10 @@ def download_video_thread(url, download_id, platform='youtube'):
                 active_downloads[download_id]['status'] = 'error'
                 active_downloads[download_id]['error'] = 'No video file found after download'
         else:
+            # Capture error output for debugging
+            error_output = '\n'.join(output_lines[-10:])  # Last 10 lines
             active_downloads[download_id]['status'] = 'error'
-            active_downloads[download_id]['error'] = f'Download failed with return code {return_code}'
+            active_downloads[download_id]['error'] = f'Download failed with return code {return_code}. Output: {error_output}'
             
     except Exception as e:
         active_downloads[download_id]['status'] = 'error'
